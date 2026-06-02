@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Aurora</title>
+    <style>
+        :root {
+            --Aurora-font-size: 70px;
+            --space-glow: 0 0 15px rgba(100, 200, 255, 0.6), 0 0 30px rgba(138, 43, 226, 0.4);
+        }
+        @keyframes fadeInOut { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+        @keyframes fireGlow { 0% { box-shadow: 0 0 8px rgba(255, 107, 0, 0.8), 0 0 15px rgba(255, 165, 0, 0.4); } 50% { box-shadow: 0 0 12px rgba(255, 107, 0, 1), 0 0 25px rgba(255, 165, 0, 0.6); } 100% { box-shadow: 0 0 8px rgba(255, 107, 0, 0.8), 0 0 15px rgba(255, 165, 0, 0.4); } }
+        @keyframes pulseStar { 0%, 100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } }
+        @keyframes pulseStarHome { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+        @keyframes pulseStarNoFlicker { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+        @keyframes pulseIntro { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } }
+        @keyframes floatUpFade { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { height: 100vh; display: flex; justify-content: center; align-items: center; background: #000; font-family: Arial, sans-serif; overflow: hidden; }
+        .stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .star { position: absolute; width: 2px; height: 2px; background: #64c8ff; border-radius: 50%; animation: fadeInOut 4s ease-in-out infinite; box-shadow: 0 0 10px rgba(100, 200, 255, 0.8); }
+        .container { display: flex; flex-direction: column; align-items: center; gap: 15px; position: relative; z-index: 10; height: 100vh; justify-content: center; }
+        .header-with-star { display: flex; align-items: center; gap: 15px; animation: float 3s ease-in-out infinite; }
+        .Aurora-sign { font-size: var(--Aurora-font-size); font-weight: bold; color: #64c8ff; text-shadow: var(--space-glow), 0 0 20px rgba(100, 200, 255, 0.8); letter-spacing: 3px; cursor: pointer; transition: transform 0.3s ease; }
+        .Aurora-sign:hover { transform: scale(1.15); }
+        .home-star { width: 60px; height: 60px; animation: pulseStarHome 3.2s ease-in-out infinite; }
+        .sentence-button { font-size: 20px; font-weight: bold; color: #64c8ff; background: none; border: none; cursor: pointer; padding: 0; transition: transform 0.2s ease; text-shadow: var(--space-glow); min-height: 30px; }
+        .sentence-button:hover { transform: scale(1.1); }
+        .input-button-group { display: flex; gap: 10px; align-items: center; margin-top: 15px; }
+        #input, button { padding: 10px 15px; font-size: 16px; border: 2px solid rgba(100, 200, 255, 0.5); border-radius: 4px; }
+        #input { width: 300px; background: rgba(10, 14, 39, 0.7); color: #64c8ff; box-shadow: 0 0 15px rgba(100, 200, 255, 0.3), inset 0 0 10px rgba(100, 200, 255, 0.1); transition: all 0.3s ease; }
+        #input:focus { outline: none; border-color: rgba(100, 200, 255, 0.8); box-shadow: 0 0 25px rgba(100, 200, 255, 0.5), inset 0 0 10px rgba(100, 200, 255, 0.2); }
+        #input::placeholder { color: rgba(100, 200, 255, 0.5); }
+        button { background-color: rgba(100, 200, 255, 0.1); color: #64c8ff; cursor: pointer; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; transition: all 0.2s ease; font-weight: bold; box-shadow: 0 0 15px rgba(100, 200, 255, 0.2); }
+        button:hover { border-color: rgba(100, 200, 255, 0.5); transform: scale(1.05); box-shadow: 0 0 25px rgba(100, 200, 255, 0.5), 0 0 15px rgba(100, 200, 255, 0.3); }
+        button:active { background-color: rgba(100, 200, 255, 0.15); transform: scale(0.98); }
+        .switch-container { display: flex; align-items: center; gap: 10px; color: #64c8ff; font-size: 12px; user-select: none; margin-top: 10px; text-shadow: 0 0 10px rgba(100, 200, 255, 0.6); }
+        .switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(100, 200, 255, 0.2); border: 2px solid rgba(100, 200, 255, 0.5); transition: all 0.3s ease; border-radius: 20px; box-shadow: 0 0 10px rgba(100, 200, 255, 0.2); }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: #64c8ff; transition: all 0.3s ease; border-radius: 50%; box-shadow: 0 0 8px rgba(100, 200, 255, 0.8); }
+        input:checked + .slider { background-color: rgba(100, 200, 255, 0.2); border-color: rgba(100, 200, 255, 0.5); }
+        input:checked + .slider:before { transform: translateX(16px); }
+
+        .corner-menu { position: fixed; top: 20px; left: 20px; z-index: 100; font-family: Arial, sans-serif; }
+        .menu-trigger { background: rgba(10, 14, 39, 0.8); color: #64c8ff; border: 2px solid rgba(100, 200, 255, 0.5); padding: 8px 15px; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer; box-shadow: 0 0 10px rgba(100, 200, 255, 0.2); transition: all 0.2s ease; display: flex; align-items: center; gap: 8px; }
+        .menu-trigger:hover { background: rgba(100, 200, 255, 0.1); box-shadow: 0 0 15px rgba(100, 200, 255, 0.4); }
+        .menu-content { display: none; position: absolute; top: 100%; left: 0; background: rgba(10, 14, 39, 0.95); border: 2px solid rgba(100, 200, 255, 0.5); border-radius: 4px; padding: 10px; min-width: 260px; max-height: 320px; overflow-y: auto; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5), 0 0 15px rgba(100, 200, 255, 0.2); }
+        .corner-menu:hover .menu-content { display: block; }
+        .menu-list { display: flex; flex-direction: column; gap: 8px; }
+        .menu-item { display: flex; align-items: center; justify-content: space-between; gap: 15px; color: #64c8ff; font-size: 14px; font-weight: bold; padding: 4px 0; }
+        .copy-btn { background: rgba(100, 200, 255, 0.1); border: 1px solid rgba(100, 200, 255, 0.4); color: #64c8ff; padding: 4px 8px; font-size: 12px; border-radius: 3px; cursor: pointer; transition: all 0.2s ease; font-weight: bold; min-width: 65px; text-align: center; }
+        .copy-btn:hover { background: rgba(100, 200, 255, 0.3); border-color: rgba(100, 200, 255, 0.8); }
+        .copy-btn:active { transform: scale(0.95); }
+        .menu-content::-webkit-scrollbar { width: 6px; }
+        .menu-content::-webkit-scrollbar-track { background: rgba(10, 14, 39, 0.5); }
+        .menu-content::-webkit-scrollbar-thumb { background: rgba(100, 200, 255, 0.4); border-radius: 3px; }
+        .menu-content::-webkit-scrollbar-thumb:hover { background: rgba(100, 200, 255, 0.7); }
+    </style>
+</head>
+<body>
+    <div class="corner-menu">
+        <button class="menu-trigger">Games ▾</button>
+        <div class="menu-content">
+            <div class="menu-list">
+                <div class="menu-item">
+                    <span>Pizza edition</span>
+                    <button class="copy-btn" onclick="openInNewTab('https://pizzaedition.win/')">Open</button>
+                </div>
+                <div class="menu-item">
+                    <span>Geometry Dash</span>
+                    <button class="copy-btn" onclick="openInNewTab('https://geometrylite.github.io/geometry-lite-classic')">Open</button>
+                </div>
+                <div class="menu-item">
+                    <span>HAHA Games</span> 
+                    <button class="copy-btn" onclick="openInNewTab('https://soapysalt4.github.io/crazy-Salt/')">Open</button>
+                </div>
+                <div class="menu-item">
+                    <span>War Bot</span>
+                    <button class="copy-btn" onclick="openInNewTab('https://warbot.io/')">Open</button>
+                </div>
+                <div class="menu-item">
+                    <span>Test</span>
+                    <button class="copy-btn" onclick="openInNewTab('https://warbot.io/')">Open</button>
+                </div>      
+                <div class="menu-item">
+                    <span>War Bot</span>
+                    <button class="copy-btn" onclick="openInNewTab('https://warbot.io/')">Open</button>
+                </div>
+                <div class="menu-item">
+                    <span>War Bot</span>
+                    <button class="copy-btn" onclick="openInNewTab('https://warbot.io/')">Open</button>
+                </div>
+                <div class="menu-item">
+                    <span>War Bot</span>
+                    <button class="copy-btn" onclick="openInNewTab('https://warbot.io/')">Open</button>
+                </div>
+                <div class="menu-item">
+                    <span>War Bot</span>
+                    <button class="copy-btn" onclick="openInNewTab('https://warbot.io/')">Open</button>
+                </div>
+                <div class="menu-item">
+                    <span>Sound Board</span>
+                    <button class="copy-btn" onclick="openInNewTab('https://boardsounds.com/')">Open</button>
+                </div>
+                <div class="menu-item">
+                    <span>Gladihoppers</span>
+                    <button class="copy-btn" onclick="openInNewTab('https://joskezelensky.github.io/gladihoppers//')">Open</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="stars" id="stars-container"></div>
+    <div class="container">
+        <div class="header-with-star">
+            <svg class="home-star" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <polygon points="20,2 24.5,15.5 38,20 24.5,24.5 20,38 15.5,24.5 2,20 15.5,15.5" fill="#64c8ff" stroke="#64c8ff" stroke-width="0.5"/>
+            </svg>
+            <div class="Aurora-sign">Aurora</div>
+        </div>
+        <button class="sentence-button" id="sentenceBox" onclick="nextSentence()"></button>
+        <div class="input-button-group">
+            <input type="text" placeholder="https://example.com/" id='input' autofocus>
+            <button onclick='Launch()'>Launch</button>
+        </div>
+        <div class="switch-container">
+            <label class="switch">
+                <input type="checkbox" id="multiTabCheck">
+                <span class="slider"></span>
+            </label>
+            <span>open 3 tabs at once</span>
+        </div>
+    </div>
+
+    <script>
+        const SENTENCES = ["1.0 Gpa Activities 🥀", "Do your work twin✌", "♡", "Soap the G", "FSSB", "Welcome", "Get off the games Dax", "Hello world", "I'm hungry", "https://warbot.io/", "Is this good?"];
+        let currentIndex = -1;
+
+        window.onload = () => {
+            generateStars();
+            nextSentence();
+        };
+
+        function generateStars() {
+            const container = document.getElementById('stars-container');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 4 + 's';
+                container.appendChild(star);
+            }
+        }
+
+        function nextSentence() {
+            currentIndex = Math.floor(Math.random() * SENTENCES.length);
+            const value = SENTENCES[currentIndex];
+            document.getElementById('sentenceBox').textContent = value;
+
+            // Check if it's a URL and multi-tab is enabled
+            if (value.startsWith("http") && document.getElementById('multiTabCheck').checked) {
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => openInNewTab(value), i * 50);
+                }
+            }
+        }
+
+        function Launch() {
+            let url = document.getElementById('input').value.trim();
+            if (!url) return;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            
+            if (document.getElementById('multiTabCheck').checked) {
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => openInNewTab(url), i * 50);
+                }
+            } else {
+                openInNewTab(url);
+            }
+        }
+
+        function openInNewTab(url) {
+            const newTab = window.open('about:blank', '_blank');
+            const doc = newTab.document;
+            doc.title = "Aurora";
+            
+            doc.body.style.cssText = 'margin:0;padding:0;height:100vh;overflow:hidden;background:#000;display:flex;flex-direction:column;position:relative;';
+
+            const style = doc.createElement('style');
+            style.textContent = `
+                @keyframes pulseIntro { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } }
+                @keyframes floatUpFade { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
+                @keyframes pulseStarNoFlicker { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                html, body { margin: 0; padding: 0; height: 100%; width: 100%; }
+                .aurora-intro { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; background: rgba(0, 0, 0, 0.9); z-index: 9999; animation: floatUpFade 2s ease-in-out forwards; pointer-events: none; }
+                .intro-logo { width: 80px; height: 80px; animation: pulseIntro 1.5s ease-in-out infinite; filter: drop-shadow(0 0 15px rgba(100, 200, 255, 0.8)); }
+                .intro-text { font-size: 60px; font-weight: bold; color: #64c8ff; text-shadow: 0 0 15px rgba(100, 200, 255, 0.6), 0 0 30px rgba(138, 43, 226, 0.4); letter-spacing: 3px; animation: pulseIntro 1.5s ease-in-out infinite; font-family: Arial, sans-serif; }
+                .top-bar-container { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; }
+                .top-bar { background: rgba(10, 14, 39, 0.85); border-bottom: 2px solid rgba(100, 200, 255, 0.6); box-shadow: 0 0 20px rgba(100, 200, 255, 0.4), inset 0 0 15px rgba(100, 200, 255, 0.1); padding: 15px 20px; display: flex; align-items: center; gap: 15px; backdrop-filter: blur(10px); width: 100%; transition: transform 0.3s ease; }
+                .top-bar.hidden { transform: translateY(-100%); }
+                .top-bar-logo { width: 50px; height: 50px; flex-shrink: 0; animation: pulseStarNoFlicker 3.2s ease-in-out infinite; filter: drop-shadow(0 0 10px rgba(100, 200, 255, 0.8)); cursor: pointer; }
+                .top-bar-logo:hover { filter: drop-shadow(0 0 20px rgba(100, 200, 255, 1)); }
+                .bar-input { flex: 1; padding: 10px 15px; font-size: 14px; border: 2px solid rgba(100, 200, 255, 0.5); border-radius: 4px; background: rgba(10, 14, 39, 0.7); color: #64c8ff; box-shadow: 0 0 15px rgba(100, 200, 255, 0.3), inset 0 0 10px rgba(100, 200, 255, 0.1); font-family: Arial, sans-serif; }
+                .bar-input:focus { outline: none; border-color: rgba(100, 200, 255, 0.8); box-shadow: 0 0 25px rgba(100, 200, 255, 0.6), inset 0 0 10px rgba(100, 200, 255, 0.2); }
+                .bar-input::placeholder { color: rgba(100, 200, 255, 0.5); }
+                .bar-button, .fullscreen-btn { padding: 10px 15px; font-size: 14px; font-weight: bold; border: 2px solid rgba(100, 200, 255, 0.5); border-radius: 4px; background: rgba(100, 200, 255, 0.1); color: #64c8ff; cursor: pointer; box-shadow: 0 0 15px rgba(100, 200, 255, 0.3); font-family: Arial, sans-serif; text-shadow: 0 0 10px rgba(100, 200, 255, 0.6); flex-shrink: 0; transition: all 0.2s ease; }
+                .bar-button:hover, .fullscreen-btn:hover { background: rgba(100, 200, 255, 0.2); border-color: rgba(100, 200, 255, 0.8); transform: scale(1.05); box-shadow: 0 0 25px rgba(100, 200, 255, 0.6); }
+                .bar-button:active, .fullscreen-btn:active { background: rgba(100, 200, 255, 0.15); transform: scale(0.98); }
+                .fullscreen-btn { position: fixed; bottom: 20px; left: 20px; z-index: 1001; }
+                .corner-menu { position: relative; z-index: 100; font-family: Arial, sans-serif; flex-shrink: 0; }
+                .menu-trigger { background: rgba(100, 200, 255, 0.1); color: #64c8ff; border: 2px solid rgba(100, 200, 255, 0.5); padding: 8px 15px; font-size: 13px; font-weight: bold; border-radius: 4px; cursor: pointer; box-shadow: 0 0 15px rgba(100, 200, 255, 0.3); display: flex; align-items: center; gap: 8px; text-shadow: 0 0 10px rgba(100, 200, 255, 0.6); transition: all 0.2s ease; }
+                .menu-trigger:hover { background: rgba(100, 200, 255, 0.2); box-shadow: 0 0 20px rgba(100, 200, 255, 0.6); border-color: rgba(100, 200, 255, 0.8); }
+                .menu-content { display: none; position: absolute; top: 100%; left: 0; background: rgba(10, 14, 39, 0.95); border: 2px solid rgba(100, 200, 255, 0.5); border-radius: 4px; padding: 10px; min-width: 260px; max-height: 320px; overflow-y: auto; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.7), 0 0 20px rgba(100, 200, 255, 0.3); }
+                .corner-menu:hover .menu-content { display: block; }
+                .menu-list { display: flex; flex-direction: column; gap: 8px; }
+                .menu-item { display: flex; align-items: center; justify-content: space-between; gap: 15px; color: #64c8ff; font-size: 13px; font-weight: bold; padding: 4px 0; text-shadow: 0 0 8px rgba(100, 200, 255, 0.5); }
+                .copy-btn { background: rgba(100, 200, 255, 0.1); border: 1px solid rgba(100, 200, 255, 0.4); color: #64c8ff; padding: 4px 8px; font-size: 11px; border-radius: 3px; cursor: pointer; font-weight: bold; min-width: 65px; text-align: center; box-shadow: 0 0 10px rgba(100, 200, 255, 0.2); text-shadow: 0 0 8px rgba(100, 200, 255, 0.4); transition: all 0.2s ease; }
+                .copy-btn:hover { background: rgba(100, 200, 255, 0.3); border-color: rgba(100, 200, 255, 0.8); box-shadow: 0 0 15px rgba(100, 200, 255, 0.5); }
+                .copy-btn:active { transform: scale(0.95); }
+                .menu-content::-webkit-scrollbar { width: 6px; }
+                .menu-content::-webkit-scrollbar-track { background: rgba(10, 14, 39, 0.5); }
+                .menu-content::-webkit-scrollbar-thumb { background: rgba(100, 200, 255, 0.4); border-radius: 3px; }
+                .menu-content::-webkit-scrollbar-thumb:hover { background: rgba(100, 200, 255, 0.7); }
+                .content-wrapper { flex: 1; overflow: hidden; width: 100%; transition: margin-top 0.3s ease; }
+                .frame-node { width: 100%; height: 100%; border: none; }
+            `;
+            doc.head.appendChild(style);
+
+            // Intro animation
+            const intro = doc.createElement('div');
+            intro.className = 'aurora-intro';
+            const logoSVG = createStar();
+            logoSVG.classList.add('intro-logo');
+            const text = doc.createElement('div');
+            text.className = 'intro-text';
+            text.textContent = 'Aurora';
+            intro.appendChild(logoSVG);
+            intro.appendChild(text);
+            doc.body.appendChild(intro);
+
+            setTimeout(() => intro.remove(), 2000);
+
+            // Top bar container (fixed position)
+            const topBarContainer = doc.createElement('div');
+            topBarContainer.className = 'top-bar-container';
+
+            const topBar = doc.createElement('div');
+            topBar.className = 'top-bar';
+
+            const homeBtn = doc.createElement('button');
+            homeBtn.style.cssText = 'background:none;border:none;cursor:pointer;padding:0;display:flex;';
+            const homeStar = createStar();
+            homeStar.classList.add('top-bar-logo');
+            homeBtn.appendChild(homeStar);
+            homeBtn.onclick = () => newTab.location.href = newTab.location.origin;
+            topBar.appendChild(homeBtn);
+
+            const cornerMenu = createMenu();
+            topBar.appendChild(cornerMenu);
+
+            const input = doc.createElement('input');
+            input.className = 'bar-input';
+            input.type = 'text';
+            input.placeholder = 'https://example.com/';
+            topBar.appendChild(input);
+
+            const launchBtn = doc.createElement('button');
+            launchBtn.className = 'bar-button';
+            launchBtn.textContent = 'Launch';
+            launchBtn.onclick = () => launchFromTab(input.value, newTab);
+            topBar.appendChild(launchBtn);
+
+            topBarContainer.appendChild(topBar);
+            doc.body.appendChild(topBarContainer);
+
+            // Content
+            const wrapper = doc.createElement('div');
+            wrapper.className = 'content-wrapper';
+            wrapper.style.marginTop = '80px';
+            const frame = doc.createElement('iframe');
+            frame.className = 'frame-node';
+            frame.src = url;
+            wrapper.appendChild(frame);
+            doc.body.appendChild(wrapper);
+
+            // Fullscreen button (fixed position bottom left, stays visible)
+            const fullBtn = doc.createElement('button');
+            fullBtn.className = 'fullscreen-btn';
+            fullBtn.textContent = '⛶';
+            fullBtn.title = 'Toggle Fullscreen';
+            let isFS = false;
+            fullBtn.onclick = () => {
+                isFS = !isFS;
+                if (isFS) {
+                    topBar.classList.add('hidden');
+                    wrapper.style.marginTop = '0';
+                    fullBtn.textContent = '⛶ Exit';
+                } else {
+                    topBar.classList.remove('hidden');
+                    wrapper.style.marginTop = '80px';
+                    fullBtn.textContent = '⛶';
+                }
+            };
+            doc.body.appendChild(fullBtn);
+
+            function createMenu() {
+                const menu = doc.createElement('div');
+                menu.className = 'corner-menu';
+                const trigger = doc.createElement('button');
+                trigger.className = 'menu-trigger';
+                trigger.textContent = 'Games ▾';
+                const content = doc.createElement('div');
+                content.className = 'menu-content';
+                const list = doc.createElement('div');
+                list.className = 'menu-list';
+                
+                const games = [
+                    { name: 'Pizza edition', url: 'https://pizzaedition.win/' },
+                    { name: 'Geometry Dash', url: 'https://geometrylite.github.io/geometry-lite-classic' },
+                    { name: 'HAHA Games', url: 'https://soapysalt4.github.io/crazy-Salt/' },
+                    { name: 'War Bot', url: 'https://warbot.io/' },
+                    { name: 'Test', url: 'https://warbot.io/' }
+                ];
+                
+                games.forEach(game => {
+                    const item = doc.createElement('div');
+                    item.className = 'menu-item';
+                    const name = doc.createElement('span');
+                    name.textContent = game.name;
+                    const btn = doc.createElement('button');
+                    btn.className = 'copy-btn';
+                    btn.textContent = 'Open';
+                    btn.onclick = () => {
+                        if (window.opener && window.opener.document.getElementById('multiTabCheck').checked) {
+                            for (let i = 0; i < 3; i++) {
+                                setTimeout(() => window.open(game.url, '_blank'), i * 50);
+                            }
+                        } else {
+                            window.open(game.url, '_blank');
+                        }
+                    };
+                    item.appendChild(name);
+                    item.appendChild(btn);
+                    list.appendChild(item);
+                });
+                
+                content.appendChild(list);
+                menu.appendChild(trigger);
+                menu.appendChild(content);
+                return menu;
+            }
+
+            function createStar() {
+                const svg = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('viewBox', '0 0 40 40');
+                svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                svg.setAttribute('aria-hidden', 'true');
+                const poly = doc.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                poly.setAttribute('points', '20,2 24.5,15.5 38,20 24.5,24.5 20,38 15.5,24.5 2,20 15.5,15.5');
+                poly.setAttribute('fill', '#64c8ff');
+                poly.setAttribute('stroke', '#64c8ff');
+                poly.setAttribute('stroke-width', '0.5');
+                svg.appendChild(poly);
+                return svg;
+            }
+        }
+
+        function launchFromTab(url, tab) {
+            if (!url.trim()) return;
+            url = url.trim();
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            
+            if (window.opener && window.opener.document.getElementById('multiTabCheck').checked) {
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => window.open(url, '_blank'), i * 50);
+                }
+            } else {
+                window.open(url, '_blank');
+            }
+        }
+    </script>
+</body>
+</html>
